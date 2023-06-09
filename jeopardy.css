@@ -1,0 +1,44 @@
+/* some colors you may find useful:
+  #115ff4
+  #060ce9
+  #28a200
+  #8d2ab5
+  #74119c
+*/
+
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #115ff4;
+}
+
+
+#thead {
+  width: 100%;
+  height: 50px;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+tbody td {
+  border: 1px solid white;
+}
+
+#gameboard {
+  height: 600px;
+  width: 800px;
+  margin: 0 auto;
+  margin-top: 250px;
+  border: 1px solid white;
+  background-color: #060ce9;
+}
+
+.category {
+  border-right: 1px solid white;
+}
