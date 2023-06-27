@@ -34,22 +34,22 @@ const catDataArray = [];
  */
 
 async function getCategoryIds(NUM_CATEGORIES) {
+    return new Promise(async (resolve, reject) => {
     try {
-        let catArray = [];
         const response = await axios.get(`https://jservice.io/api/categories?count=${NUM_CATEGORIES}`);
         const catId = response.data.map((category) => category.id);
         while (catArray.length < NUM_CATEGORIES) {
             const randomIds = Math.floor(Math.random() * 28163);
             if(catArray.includes(randomIds) !== true) {
                 catArray.push(randomIds);
-                console.log(catArray);
             }
         }
-        return (catArray);
+        resolve(catArray);
     }   catch (error) {
         console.error(error.message);
-        throw error;    
+        reject(error);    
     };
+});
 };
 
 /** Return object with data about a category:
@@ -65,11 +65,10 @@ async function getCategoryIds(NUM_CATEGORIES) {
  */
 
 async function getCategory(catArray) {
+    return new Promise(async (resolve, reject) => {
     try {
-        //getCategoryIds(NUM_CATEGORIES);
-        const catDataArray = [];
+        await getCategoryIds(NUM_CATEGORIES);
         for (let id of catArray) {
-            console.log('I have entered the for loop')
         const response = await axios.get(`https://jservice.io/api/category?id=${id}`);
         const categoryData = {
             title: response.data.title,
@@ -81,10 +80,11 @@ async function getCategory(catArray) {
     };
         catDataArray.push(categoryData);
     }
-    return catDataArray;
+    resolve(catDataArray);
 } catch (error) {
     console.error(error);
-}
+    reject(error);
+}})
 }
 
 /** Fill the HTML table#jeopardy with the categories & cells for questions.
@@ -96,14 +96,13 @@ async function getCategory(catArray) {
  */
 
 async function fillTable() {
-    //cat_array = getCategoryIds(NUM_CATEGORIES);
-    //foreach Id in cat_array:
-        //data = getCategory(Id);
-        getCategoryIds(NUM_CATEGORIES)
-        getCategory(catArray)
+        getCategoryIds(NUM_CATEGORIES);
+        //this code is working
+        await getCategory(catArray);
+        console.log(catDataArray)
 
-    const response = await axios.get(`https://jservice.io/api/categories?count=${NUM_CATEGORIES}`);
-    const response2 = await axios.get(`https://jservice.io/api/category?id=${catId}`)
+    //const response = await axios.get(`https://jservice.io/api/categories?count=${NUM_CATEGORIES}`);
+    //const response2 = await axios.get(`https://jservice.io/api/category?id=${catId}`)
    
 
     const tableHeaderRow = document.getElementById('tableHeaderRow');
@@ -113,20 +112,21 @@ async function fillTable() {
     const category = document.getElementsByClassName('category')
 
 
-    for (let category of response.data) {
+    for (let title of catDataArray) {
         const questionRow = document.createElement("tr");
-        for (let i = 0; i < numCategories; i++) {
-            const category = response.data[i];
-            const categoryCell = document.getElementById(`cat${i + 1}`);
-            categoryCell.textContent = category.title;
+        for (let i = 0; i < NUM_CATEGORIES; i++) {
+            const title = catDataArray[i].title;
+            console.log(title)
+            const titleCell = document.getElementById(`cat${i + 1}`);
+            titleCell.textContent = title
 
-            for (let j = 0; j < numQuestionsPerCat; j++) {
-                const question = response2.data[j];
+            /*for (let j = 0; j < numQuestionsPerCat; j++) {
+                const question = title.clues[j];
                 console.log(question)
                 const questionCell = document.getElementById(`cat${j + 1}`);
-                questionCell.textContent = category.question;
+                questionCell.textContent = question;
            
-          }
+          }*/
         }
     }
 }
@@ -164,8 +164,8 @@ function hideLoadingView() {
  * */
 
 async function setupAndStart() {
-    getCategoryIds();
-    getCategory();
+    getCategoryIds(NUM_CATEGORIES);
+    getCategory(catArray);
     fillTable();
    
 }
