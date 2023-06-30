@@ -17,7 +17,15 @@
 //    },
 //    ...
 //  ]
-let categories = [];
+
+fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://jservice.io/')}`)
+                    .then(response => {
+                      if (response.ok) return response.json()
+                      throw new Error('Network response was not ok.')
+                    })
+                    .then(data => console.log(data.contents));
+
+
 let catArray = [];
 const NUM_CATEGORIES = 6;
 const numQuestionsPerCat = 5;
@@ -28,10 +36,12 @@ const catDataArray = [];
 
 
 
+
 /** Get NUM_CATEGORIES random category from API.
  *
  * Returns array of category ids
  */
+
 
 async function getCategoryIds(NUM_CATEGORIES) {
     return new Promise(async (resolve, reject) => {
@@ -41,6 +51,7 @@ async function getCategoryIds(NUM_CATEGORIES) {
         while (catArray.length < NUM_CATEGORIES) {
             const randomIds = Math.floor(Math.random() * 28163);
             if(catArray.includes(randomIds) !== true) {
+                if(catArray.indexOf(randomIds) === -1)
                 catArray.push(randomIds);
             }
         }
@@ -97,40 +108,42 @@ async function getCategory(catArray) {
 
 async function fillTable() {
         getCategoryIds(NUM_CATEGORIES);
-        //this code is working
         await getCategory(catArray);
-        console.log(catDataArray)
+        await fillCats(catDataArray);
+        await fillCells(catDataArray);
 
-    //const response = await axios.get(`https://jservice.io/api/categories?count=${NUM_CATEGORIES}`);
-    //const response2 = await axios.get(`https://jservice.io/api/category?id=${catId}`)
-   
+}
 
-    const tableHeaderRow = document.getElementById('tableHeaderRow');
-    const table = document.querySelector('#gameboard')
-    const thead = document.querySelector('thead');
-    const headerTd = document.querySelector('td')
-    const category = document.getElementsByClassName('category')
-
-
+async function fillCats(catDataArray) {
     for (let title of catDataArray) {
-        const questionRow = document.createElement("tr");
-        for (let i = 0; i < NUM_CATEGORIES; i++) {
-            const title = catDataArray[i].title;
-            console.log(title)
-            const titleCell = document.getElementById(`cat${i + 1}`);
-            titleCell.textContent = title
+         for (let i = 0; i < NUM_CATEGORIES; i++) {
+             const title = catDataArray[i].title;
+             const titleCell = document.getElementById(`cat${i + 1}`);
+             titleCell.textContent = title;
+         }
+     }
 
-            /*for (let j = 0; j < numQuestionsPerCat; j++) {
-                const question = title.clues[j];
-                console.log(question)
-                const questionCell = document.getElementById(`cat${j + 1}`);
-                questionCell.textContent = question;
-           
-          }*/
+}
+
+async function fillCells(catDataArray) {
+    for (let i = 0; i < numQuestionsPerCat; i++) {
+        for (let j = 0; j < NUM_CATEGORIES; j++) {
+            const clues = catDataArray[j].clues;
+            if (clues.length > i) {
+                const clue = clues[i];
+                const cluesCell = document.getElementById(`quest${i + 1}-cat${j + 1}`);
+
+                cluesCell.addEventListener('click', function () {
+                    if (cluesCell.textContent === '?') {
+                      cluesCell.textContent = clue.question;
+                    } else if(cluesCell.textContent = clue.question) {
+                    cluesCell.textContent = clue.answer
+                }
+            })
+            }
         }
     }
 }
-
 
 /** Handle clicking on a clue: show the question or answer.
  *
@@ -140,20 +153,21 @@ async function fillTable() {
  * - if currently "answer", ignore click
  * */
 
-function handleClick(evt) {
-}
+//function handleClick(evt) {
+//}
 
 /** Wipe the current Jeopardy board, show the loading spinner,
  * and update the button used to fetch data.
  */
 
-function showLoadingView() {
-
+async function showLoadingView() {
+    document.getElementById('spinner').style.display = 'block'
 }
 
 /** Remove the loading spinner and update the button used to fetch data. */
 
 function hideLoadingView() {
+    document.getElementById('spinner').style.display = 'none'
 }
 
 /** Start game:
@@ -164,15 +178,38 @@ function hideLoadingView() {
  * */
 
 async function setupAndStart() {
-    getCategoryIds(NUM_CATEGORIES);
-    getCategory(catArray);
-    fillTable();
-   
+    showLoadingView();
+    await getCategoryIds(NUM_CATEGORIES);
+    await getCategory(catArray);
+    await fillTable();
+    hideLoadingView(); 
 }
 
 /** On click of start / restart button, set up game. */
 
-// TODO
+const startButton = document.getElementById('btn');
+startButton.addEventListener('click', function () {
+        setupAndStart();
+});
+
+
+
+    const restartButton = document.getElementById('btn2')
+    restartButton.addEventListener('click', function () {
+    const questions = document.getElementsByClassName('question');
+    const categories = document.getElementsByClassName('category');
+
+    for (let i = 0; i < questions.length; i++) {
+        questions[i].innerHTML = '';
+    }
+    for (let i = 0; i < categories.length; i++) {
+        categories[i].innerHTML = '';
+    }
+    setupAndStart();
+})
+
+
+      
 
 /** On page load, add event handler for clicking clues */
 
